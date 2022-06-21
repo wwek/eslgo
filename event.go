@@ -69,30 +69,11 @@ func readJSONEvent(body []byte) (*Event, error) {
 	return readEvent(body)
 }
 
+// readEvent
 func readEvent(body []byte) (*Event, error) {
-	reader := bufio.NewReader(bytes.NewBuffer(body))
-	header := textproto.NewReader(reader)
-
-	headers, err := header.ReadMIMEHeader()
-	if err != nil {
-		return nil, err
-	}
 	event := &Event{
-		Headers: headers,
+		Body: body,
 	}
-
-	if contentLength := headers.Get("Content-Length"); len(contentLength) > 0 {
-		length, err := strconv.Atoi(contentLength)
-		if err != nil {
-			return event, err
-		}
-		event.Body = make([]byte, length)
-		_, err = io.ReadFull(reader, event.Body)
-		if err != nil {
-			return event, err
-		}
-	}
-
 	return event, nil
 }
 
