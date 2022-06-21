@@ -20,15 +20,21 @@ import (
 	"log"
 )
 
-func (c *Conn) EnableEvents(ctx context.Context) error {
+func (c *Conn) EnableEvents(ctx context.Context, formats ...string) error {
 	var err error
+	var format string
+	if len(formats) > 0 {
+		format = formats[0]
+	} else {
+		format = "plain"
+	}
 	if c.outbound {
 		_, err = c.SendCommand(ctx, command.MyEvents{
-			Format: "plain",
+			Format: format,
 		})
 	} else {
 		_, err = c.SendCommand(ctx, command.Event{
-			Format: "plain",
+			Format: format,
 			Listen: []string{"all"},
 		})
 	}

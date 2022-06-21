@@ -61,16 +61,39 @@ func readPlainEvent(body []byte) (*Event, error) {
 
 // TODO: Needs processing
 func readXMLEvent(body []byte) (*Event, error) {
-	return &Event{
-		Headers: make(textproto.MIMEHeader),
-	}, nil
+	return readEvent(body)
 }
 
 // TODO: Needs processing
 func readJSONEvent(body []byte) (*Event, error) {
-	return &Event{
-		Headers: make(textproto.MIMEHeader),
-	}, nil
+	return readEvent(body)
+}
+
+func readEvent(body []byte) (*Event, error) {
+	reader := bufio.NewReader(bytes.NewBuffer(body))
+	header := textproto.NewReader(reader)
+
+	headers, err := header.ReadMIMEHeader()
+	if err != nil {
+		return nil, err
+	}
+	event := &Event{
+		Headers: headers,
+	}
+
+	if contentLength := headers.Get("Content-Length"); len(contentLength) > 0 {
+		length, err := strconv.Atoi(contentLength)
+		if err != nil {
+			return event, err
+		}
+		event.Body = make([]byte, length)
+		_, err = io.ReadFull(reader, event.Body)
+		if err != nil {
+			return event, err
+		}
+	}
+
+	return event, nil
 }
 
 // GetName Helper function that returns the event name header
